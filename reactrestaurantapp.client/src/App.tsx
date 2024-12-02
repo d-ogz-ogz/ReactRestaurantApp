@@ -29,7 +29,7 @@ function App() {
                 <Route path="order" element={<Order/> }></Route>
          
                 <Route path="orderConfirmation"element={<OrderConfirmation />}></Route>
-             {/*   <Route path="card"element={<Card />}></Route>*/}
+
 
             </Routes>
 
