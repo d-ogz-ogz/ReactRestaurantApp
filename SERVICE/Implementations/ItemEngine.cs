@@ -19,12 +19,53 @@ namespace SERVICE.Implementations
         }
         public List<CategoryDto> GetCategories()
         {
-            throw new NotImplementedException();
+            List<CategoryDto> categories = new List<CategoryDto>();
+            var categoryData = _uow.categories.GetAll().OrderBy(n => n.CategoryName).ToList();
+            if (categoryData.Count > 0) {
+                foreach (var category in categoryData) {
+                    categories.Add(new CategoryDto
+                    {
+                        CategoryName = category.CategoryName,
+                        Id = category.Id,
+
+
+                    });
+                } 
+            }
+            return categories;
         }
 
-        public List<ItemDto> GetItems(int categoryId = 0, int productPerPage = 0, int pageIndex = 0)
+        public getItemResponse GetItems(int categoryId = 0, int productPerPage = 0, int pageIndex = 0)
         {
-            throw new NotImplementedException();
+            var index = pageIndex * productPerPage;
+            List<ItemDto> itemList = new List<ItemDto>();
+            var itemData = _uow.items.GetAll(res => categoryId == 0 || res.CategoryId == categoryId).Skip(index).Take(productPerPage).ToList();
+            if (itemData.Count > 0) {
+                foreach (var item in itemList)
+                {
+
+                    itemList.Add(new ItemDto
+                    {
+                        Id = item.Id,
+                        CategoryId = item.CategoryId,
+                        Description = item.Description,
+                        Name = item.Name,
+                        Price = item.Price,
+
+                    });
+                }
+
+            }
+            return new getItemResponse() { itemList = itemList, count = itemList.Count };
+
+        }
+
+        public class getItemResponse
+        {
+            public List<ItemDto> itemList;
+            public int count { get; set; }
+
+
         }
     }
 }

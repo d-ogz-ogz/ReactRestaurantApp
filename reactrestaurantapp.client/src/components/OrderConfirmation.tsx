@@ -1,7 +1,7 @@
 
 import { Container, Typography, Box, Button } from '@mui/material';
 
-function OrderConfirmation(orderInfoHandler) {
+function OrderConfirmation() {
     
   return (
     <Container maxWidth="sm" style={{ marginTop: '50px', textAlign: 'center' }}>

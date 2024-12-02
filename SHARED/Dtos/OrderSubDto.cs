@@ -18,6 +18,7 @@ namespace SHARED.Dtos
         public string? ShippingAddress { get; set; }
         public string? City { get; set; }
         public string? District { get; set; }
+        public string? BillingAddress { get; set; }
 
     }
 }

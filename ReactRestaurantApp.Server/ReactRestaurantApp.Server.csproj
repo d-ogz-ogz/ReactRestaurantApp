@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DOMAIN\DOMAIN.csproj" />
     <ProjectReference Include="..\reactrestaurantapp.client\reactrestaurantapp.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

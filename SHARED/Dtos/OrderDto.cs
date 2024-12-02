@@ -10,7 +10,6 @@ namespace SHARED.Dtos
     {
         public OrderSubDto? OrderDetails { get; set; }
         public bool IsRemoved { get; set; }
-
         public List<OrderItemDto>? OrderItems { get; set; }
         public int UserId { get; set; }
         public virtual UserDto? User { get; set; }

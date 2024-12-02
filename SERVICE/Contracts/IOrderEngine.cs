@@ -10,7 +10,7 @@ namespace SERVICE.Contracts
 {
     public interface IOrderEngine
     {
-        public List<OrderResponse> GetOrders(int pageIndex, int perPage, int userId)
+        public List<OrderResponse> GetOrders(int pageIndex, int perPage, int userId);
           public OrderResponse AddOrder(OrderDto order);
     }
 }

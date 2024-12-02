@@ -2,13 +2,8 @@ import { Card, CardContent, CardMedia, Box, Typography, Button } from '@mui/mate
 import {useEffect,useState} from 'react';
 
 function Menu() {
-    type MenuItem = {
-        id: number,
-        title: string,
-        description: string,
-        image: string
-    };
-    const [menu, setMenu] = useState<MenuItem[]>([]);
+ 
+    const [menu, setMenu] = useState<MenuItemModel[]>([]);
 
     useEffect(() => {
         fetch("contollerName/method").then(res => res.json()).then(data => setMenu(data)).catch((err)=> console.log(err))

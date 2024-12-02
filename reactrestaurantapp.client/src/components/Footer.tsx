@@ -7,10 +7,10 @@ function Footer() {
     return (
         <Box
             sx={{
-                backgroundColor: '#1976d2',  // Footer arka plan rengi (primary mavi)
-                color: '#fff',               // Yazý rengi (beyaz)
-                padding: '20px 0',           // Üst-alt boþluk
-                textAlign: 'center',         // Ortala
+                backgroundColor: '#1976d2', 
+                color: '#fff',             
+                padding: '20px 0',        
+                textAlign: 'center',         
                 position: 'relative',
                 bottom: 0,
                 width: '100%',

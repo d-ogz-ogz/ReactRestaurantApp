@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactRestaurantApp.Server", "ReactRestaurantApp.Server\ReactRestaurantApp.Server.csproj", "{B833BE41-7258-4FF9-B27C-5EEBA0A24645}"
+	ProjectSection(ProjectDependencies) = postProject
+		{37937CD8-9728-4E3F-9378-DBFB6881C777} = {37937CD8-9728-4E3F-9378-DBFB6881C777}
+	EndProjectSection
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "reactrestaurantapp.client", "reactrestaurantapp.client\reactrestaurantapp.client.esproj", "{FBCCE715-0DCF-4C2B-92E6-66F90801FD19}"
 EndProject

@@ -53,12 +53,7 @@ namespace SERVICE.Implementations
                     {
                         foreach (var orderItem in order.OrderItems)
                         {
-
                             orderI.items.Add(orderItem);
-
-
-
-
                         }
 
 
@@ -143,9 +138,9 @@ namespace SERVICE.Implementations
                 GrandTotal = orderModel.OrderDetails.GrandTotal,
                 ShippingAddress = orderModel.OrderDetails.ShippingAddress,
                 ReceiverName = orderModel.OrderDetails.ReceiverName
-              
 
-        };
+
+            };
 
         }
         public class OrderResponse
