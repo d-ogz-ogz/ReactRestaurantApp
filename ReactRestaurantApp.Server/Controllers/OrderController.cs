@@ -14,11 +14,13 @@ namespace ReactRestaurantApp.Server.Controllers
         {
             _orderEngine = orderEngine;
         }
+        [HttpGet("GetOrders")]
         public List<OrderResponse> GetOrders(int pageIndex, int perPage, int userId)
         {
             return this._orderEngine.GetOrders(pageIndex,perPage,userId);
         }
-        public OrderResponse AddOrder(OrderDto order)
+        [HttpPost("GetOrders")]
+        public Task<OrderResponse> AddOrder(OrderDto order)
         {
             return this._orderEngine.AddOrder(order);
         }

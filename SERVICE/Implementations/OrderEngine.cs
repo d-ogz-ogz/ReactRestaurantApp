@@ -10,16 +10,32 @@ using System.Text;
 using RabbitMQ.Client.Events;
 using StackExchange.Redis;
 using static SERVICE.Implementations.OrderEngine;
+using SERVICE.RabbitMq;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
+using Google.Rpc;
+using Stripe;
+using SERVICE.Exceptions;
 
 namespace SERVICE.Implementations
 {
     public class OrderEngine : IOrderEngine
     {
 
+        //RabbitMq
+
+
+
         private readonly IUnitOfWork _uow;
-        public OrderEngine(IUnitOfWork uow)
+        private readonly RabbitMqPublisher _rabbitMqPublisher;
+        private readonly IDistributedCache _cache;
+        private readonly IElasticClient _elasticClient;
+        public OrderEngine(IUnitOfWork uow, IDistributedCache cache, IElasticClient elasticClient)
         {
             _uow = uow;
+            _rabbitMqPublisher = new RabbitMqPublisher();
+            _cache = cache;
+            _elasticClient = elasticClient;
         }
 
         public List<OrderResponse> GetOrders(int pageIndex, int perPage, int userId)
@@ -36,7 +52,7 @@ namespace SERVICE.Implementations
             List<OrderItemDto> userOrderItems = new List<OrderItemDto>();
 
             List<OrderResponse> orderInfo = new List<OrderResponse>();
-            var userOrders = _uow.orders.GetAll(r => userId == 0 || r.UserId == userId, null, "OrderItems").Skip(index).Take(perPage).ToList();
+            var userOrders = _uow.orders.GetAllAsync(r => userId == 0 || r.UserId == userId, null, "OrderItems").Result.Skip(index).Take(perPage).ToList();
             if (userOrders.Count > 0)
             {
                 foreach (var order in userOrders)
@@ -78,16 +94,18 @@ namespace SERVICE.Implementations
         {
 
         }
-        public OrderResponse AddOrder(OrderDto order)
+        public async Task<OrderResponse> AddOrder(OrderDto order)
         {
             OrderDto orderModel = new OrderDto();
             OrderSubDto orderDetails = new OrderSubDto();
             List<OrderItemDto> items = new List<OrderItemDto>();
 
+
             try
             {
                 if (order.OrderDetails != null)
                 {
+
                     orderDetails.OrderDate = DateTime.Now;
                     orderDetails.OrderNo = Guid.NewGuid().ToString();
                     orderDetails.City = order?.OrderDetails?.City;
@@ -120,6 +138,17 @@ namespace SERVICE.Implementations
 
                         orderModel.OrderDetails = orderDetails;
                         _uow.orders.Add(orderModel);
+                        _rabbitMqPublisher.Publish("new order","orders");
+                        var orderCache = JsonConvert.SerializeObject(orderModel);
+                        await _cache.SetStringAsync("order", orderCache);
+                        //ElasticSearch indexi
+                        var response = await _elasticClient.IndexDocumentAsync(orderModel);
+                        if (!response.IsValid)
+                        {
+                            throw new Exception(response.OriginalException.Message);
+                        }
+
+
 
 
 
@@ -128,10 +157,16 @@ namespace SERVICE.Implementations
 
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
-                throw;
+                var publisher = new RabbitMqPublisher();
+                publisher.Publish("logQueue", "log ex message:" +ex.Message);
+                publisher.Publish("performanceQueue", "performance data..");
+
+                // Redistem veriyi alma 
+                //var getOrder = await _cache.GetStringAsync("order");
+                //  JsonConvert.DeserializeObject<Order>(getOrder);
             }
 
 
@@ -143,9 +178,9 @@ namespace SERVICE.Implementations
                 GrandTotal = orderModel.OrderDetails.GrandTotal,
                 ShippingAddress = orderModel.OrderDetails.ShippingAddress,
                 ReceiverName = orderModel.OrderDetails.ReceiverName
-              
 
-        };
+
+            };
 
         }
         public class OrderResponse
@@ -160,72 +195,69 @@ namespace SERVICE.Implementations
 
 
         }
-        public static void SendStockUpdateMessage(int productId, int quantityId)
+
+
+
+        public OrderResponse MapOrderToOrderResponse(OrderDto orderDto)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
+            return new OrderResponse
             {
-                channel.QueueDeclare(
-                    queue: "Stock_Update_queue",
-                    durable: false,
-                    exclusive: false,
-                    autoDelete: false,
-                    arguments: null
+                ReceiverName = orderDto.User.FirstName ?? "",
+                OrderNo = orderDto.OrderDetails.OrderNo ?? "0",
+                OrderDate = orderDto.OrderDetails.OrderDate ?? DateTime.MinValue,
+                ShippingAddress = orderDto.OrderDetails.ShippingAddress ?? "",
+                GrandTotal = orderDto.OrderDetails.GrandTotal ?? 0,
+                items = orderDto.OrderItems ?? new List<OrderItemDto>()
 
-                    );
-                string message = $"{productId} {quantityId}";
-                var body = Encoding.UTF8.GetBytes(message);
-                channel.BasicPublish(
-                    exchange: "",
-                    routingKey: "Stock_Update_queue",
-                    body: body
 
-                    );
-            }
+            };
 
         }
-        public void StartStockUpdateWorker()
+
+        public async Task<List<OrderResponse>> searchOrders(string query)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
+
+            var searchResponse = await _elasticClient.SearchAsync<OrderDto>(o => o.Query(q => q.MatchAll()));
+            if (!searchResponse.IsValid)
             {
-                channel.QueueDeclare(
+                throw new Exception("Elastic Search error" + searchResponse.OriginalException.Message);
 
-                    queue: "Stock_Update_queue",
-                    durable: false,
-                    exclusive: false,
-                    autoDelete: false,
-                    arguments: null
-                    );
+            }
+            var orders = searchResponse.Documents
+           .Select(orderDto => MapOrderToOrderResponse(orderDto))
+           .ToList();
 
-                var consumer = new EventingBasicConsumer(channel);
-                consumer.Received += (model, ea) =>
+            return orders;
+        }
+
+        public bool CreatePaymentIntent(decimal amount)
+        {
+            try
+            {
+                // Stripe API anahtarınızı ayarlayın
+                StripeConfiguration.ApiKey = "my secret key";
+                // PaymentIntent oluşturma seçenekleri
+                var options = new PaymentIntentCreateOptions
                 {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    var parts = message.Split(":");
-                    int productId = int.Parse(parts[0]);
-                    int quantity = int.Parse(parts[1]);
-                    UpdateProductStock(productId, quantity);
+                    Amount = (long)amount,
+                    Currency = "usd",
+                    PaymentMethodTypes = new List<string> { "card" }
 
                 };
-                channel.BasicConsume(
-
-                    queue: "Stock_Update_queue",
-                    autoAck: true,
-                    consumer: consumer
-
-                    );
-
+                // PaymentIntentService kullanarak işlem oluşturma
+                var service = new PaymentIntentService();
+                PaymentIntent paymentIntent = service.Create(options);
+                return true;
             }
-        }
+            catch (Exception ex)
+            {
 
-        public void UpdateProductStock(int productId, int quantity)
-        {
-            // Veritabanı işlemi ile stok güncellemesi yapılır
-            Console.WriteLine("Stok güncelleniyor... Ürün ID: {0}, Yeni Miktar: {1}", productId, quantity);
+                throw new PaymentException("error");
+            }
+
+
+
+           
         }
     }
 }

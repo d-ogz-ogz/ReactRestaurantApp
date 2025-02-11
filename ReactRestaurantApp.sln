@@ -16,6 +16,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SHARED", "SHARED\SHARED.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SERVICE", "SERVICE\SERVICE.csproj", "{2B6255B9-9782-4CFE-A22F-06A36DFE3ABC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject_Deneme", "TestProject_Deneme\TestProject_Deneme.csproj", "{8202E9D5-3CD6-498A-A2DF-E97067668030}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{2B6255B9-9782-4CFE-A22F-06A36DFE3ABC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B6255B9-9782-4CFE-A22F-06A36DFE3ABC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B6255B9-9782-4CFE-A22F-06A36DFE3ABC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8202E9D5-3CD6-498A-A2DF-E97067668030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8202E9D5-3CD6-498A-A2DF-E97067668030}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8202E9D5-3CD6-498A-A2DF-E97067668030}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8202E9D5-3CD6-498A-A2DF-E97067668030}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

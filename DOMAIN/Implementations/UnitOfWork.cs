@@ -17,7 +17,7 @@ namespace DOMAIN.Implementations
             categories = new CategoryRepository(_db);
             orders = new OrderRepository(_db);
             items = new ItemRepository(_db);
-            orderItems=new OrderItemRepository(_db)
+            orderItems = new OrderItemRepository(_db);
         }
 
         public ICategoryRepository categories {  get; set; }

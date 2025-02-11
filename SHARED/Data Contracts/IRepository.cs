@@ -9,14 +9,15 @@ namespace SHARED.Data_Contracts
 {
     public interface IRepository<T> where T : class, new()
     {
-        T GetById(int id);
+        Task<T?> GetByIdAsync(int id);
 
-        public IQueryable<T> GetAll(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = null);
+        public Task<List<T>> GetAllAsync(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = null);
 
         void Add(T entity);
 
         void Remove(T entity);
 
         void Update(T entity);
+        Task SaveAsync();
     }
 }
